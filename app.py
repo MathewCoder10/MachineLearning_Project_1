@@ -9,7 +9,7 @@ def fetch_poster(movie_id):
     poster_path = data['poster_path']
     return "https://image.tmdb.org/t/p/w500/" + poster_path
 
-def recommend(movie, num_recommendations=15):  # Updated to fetch 15 recommendations
+def recommend(movie, num_recommendations=15):
     movie_index = movies[movies['title'] == movie].index[0]
     top_similar_movies = top_n_similarity[movie_index]
     
@@ -32,15 +32,35 @@ movies_dict = pickle.load(open('movie_dict.pkl', 'rb'))
 movies = pd.DataFrame(movies_dict)
 top_n_similarity = pickle.load(open('top_n_similarity.pkl', 'rb'))
 
-st.title('Movie Recommender System')
+st.title('AI Powered Movie Recommender')
+
+st.markdown(
+    """
+    <style>
+    .custom-select-text {
+        color: white;
+        font-size: 24px;
+        font-weight: bold;
+        background: linear-gradient(90deg, rgba(0,210,255,1) 0%, rgba(0,150,255,1) 100%);
+        padding: 15px;
+        border-radius: 10px;
+        text-align: center;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+st.markdown('<p class="custom-select-text">Type or select a movie from the dropdown:</p>', unsafe_allow_html=True)
 
 selected_movie_name = st.selectbox(
-    'Type or select a movie from the dropdown!',
+    '',
     movies['title'].values
 )
 
 if st.button('Recommend'):
-    names, posters = recommend(selected_movie_name, num_recommendations=15)  # Fetching 15 recommendations
+    names, posters = recommend(selected_movie_name, num_recommendations=15)
     
     # Display recommendations
     num_cols = 5
