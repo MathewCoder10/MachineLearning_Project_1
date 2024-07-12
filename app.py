@@ -9,22 +9,27 @@ def fetch_poster(movie_id):
     poster_path = data['poster_path']
     return "https://image.tmdb.org/t/p/w500/" + poster_path
 
-def recommend(movie):
+def recommend(movie, num_recommendations=15):  # Updated to fetch 15 recommendations
     movie_index = movies[movies['title'] == movie].index[0]
     top_similar_movies = top_n_similarity[movie_index]
     
     recommended_movies = []
     recommended_movies_posters = []
+    count = 0
     for similar_movie in top_similar_movies:
         similar_movie_index = similar_movie[0]
         movie_id = movies.iloc[similar_movie_index].movie_id
         recommended_movies.append(movies.iloc[similar_movie_index].title)
         recommended_movies_posters.append(fetch_poster(movie_id))
+        count += 1
+        if count >= num_recommendations:
+            break
+    
     return recommended_movies, recommended_movies_posters
 
+# Load movies and similarity data
 movies_dict = pickle.load(open('movie_dict.pkl', 'rb'))
 movies = pd.DataFrame(movies_dict)
-
 top_n_similarity = pickle.load(open('top_n_similarity.pkl', 'rb'))
 
 st.title('Movie Recommender System')
@@ -35,20 +40,16 @@ selected_movie_name = st.selectbox(
 )
 
 if st.button('Recommend'):
-    names, posters = recommend(selected_movie_name)
-    col1, col2, col3, col4, col5 = st.columns(5)
-    with col1:
-        st.text(names[0])
-        st.image(posters[0])
-    with col2:
-        st.text(names[1])
-        st.image(posters[1])
-    with col3:
-        st.text(names[2])
-        st.image(posters[2])
-    with col4:
-        st.text(names[3])
-        st.image(posters[3])
-    with col5:
-        st.text(names[4])
-        st.image(posters[4])
+    names, posters = recommend(selected_movie_name, num_recommendations=15)  # Fetching 15 recommendations
+    
+    # Display recommendations
+    num_cols = 5
+    num_rows = len(names) // num_cols + 1
+    for i in range(num_rows):
+        row = st.columns(num_cols)
+        for j in range(num_cols):
+            index = i * num_cols + j
+            if index < len(names):
+                with row[j]:
+                    st.text(names[index])
+                    st.image(posters[index])
