@@ -2,12 +2,25 @@ import streamlit as st
 import pickle
 import pandas as pd
 import requests
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
 
 def fetch_poster(movie_id):
-    response = requests.get("https://api.themoviedb.org/3/movie/{}?api_key=8265bd1679663a7ea12ac168da84d2e8&language=en-US".format(movie_id))
-    data = response.json()
-    poster_path = data['poster_path']
-    return "https://image.tmdb.org/t/p/w500/" + poster_path
+    try:
+        response = requests.get(f"https://api.themoviedb.org/3/movie/{movie_id}?api_key=8265bd1679663a7ea12ac168da84d2e8&language=en-US")
+        response.raise_for_status()  # Raise an error for bad status codes
+        data = response.json()
+        poster_path = data.get('poster_path')
+        if poster_path:
+            return f"https://image.tmdb.org/t/p/w500/{poster_path}"
+        else:
+            logging.warning(f"No poster path found for movie_id: {movie_id}")
+            return "default_poster_url"  # Replace with a valid default URL
+    except requests.exceptions.RequestException as e:
+        logging.error(f"Error fetching poster for movie_id: {movie_id}, error: {e}")
+        return "default_poster_url"  # Replace with a valid default URL
 
 def recommend(movie, num_recommendations=15):
     movie_index = movies[movies['title'] == movie].index[0]
