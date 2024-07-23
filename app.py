@@ -85,4 +85,8 @@ if st.button('Recommend'):
             if index < len(names):
                 with row[j]:
                     st.text(names[index])
-                    st.image(posters[index])
+                    try:
+                        st.image(posters[index])
+                    except Exception as e:
+                        logging.error(f"Error displaying image for {names[index]}: {e}")
+                        st.text("Image not available")
