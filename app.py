@@ -86,7 +86,7 @@ else:
         movies['title'].values
     )
 
-    num_recommendations = st.slider('Number of recommendations', 1, 20, 15)
+    num_recommendations = st.slider('Number of recommendations', 1, 10, 5)
 
     if st.button('Search'):
         names, posters = recommend(selected_movie_name, num_recommendations=num_recommendations)
