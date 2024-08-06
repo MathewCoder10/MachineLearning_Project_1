@@ -29,10 +29,19 @@ def fetch_cast_and_crew(movie_id):
         logging.error(f"Error fetching cast and crew for movie_id: {movie_id}, error: {e}")
         return None
 
-def fetch_poster(poster_path):
-    if poster_path:
-        return f"https://image.tmdb.org/t/p/w500/{poster_path}"
-    else:
+def fetch_poster(movie_id):
+    try:
+        response = requests.get(f"https://api.themoviedb.org/3/movie/{movie_id}?api_key={API_KEY}&language=en-US")
+        response.raise_for_status()  # Raise an error for bad status codes
+        data = response.json()
+        poster_path = data.get('poster_path')
+        if poster_path:
+            return f"https://image.tmdb.org/t/p/w500/{poster_path}"
+        else:
+            logging.warning(f"No poster path found for movie_id: {movie_id}")
+            return "default_poster_url"  # Replace with a valid default URL
+    except requests.exceptions.RequestException as e:
+        logging.error(f"Error fetching poster for movie_id: {movie_id}, error: {e}")
         return "default_poster_url"  # Replace with a valid default URL
 
 def recommend(movie, num_recommendations=15):
@@ -47,7 +56,7 @@ def recommend(movie, num_recommendations=15):
         similar_movie_index = similar_movie[0]
         movie_id = movies.iloc[similar_movie_index].movie_id
         recommended_movies.append(movies.iloc[similar_movie_index].title)
-        recommended_movies_posters.append(fetch_poster(movies.iloc[similar_movie_index].poster_path))
+        recommended_movies_posters.append(fetch_poster(movie_id))
         recommended_movie_ids.append(movie_id)
         count += 1
         if count >= num_recommendations:
@@ -85,6 +94,10 @@ def display_movie_details(movie_id):
 movies_dict = pickle.load(open('movie_dict.pkl', 'rb'))
 movies = pd.DataFrame(movies_dict)
 top_n_similarity = pickle.load(open('top_n_similarity.pkl', 'rb'))
+
+# Check if 'poster_path' column exists
+if 'poster_path' not in movies.columns:
+    logging.error("'poster_path' column not found in the movies DataFrame")
 
 st.title('AI Powered Movie Recommender')
 
