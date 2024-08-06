@@ -82,7 +82,7 @@ st.markdown(
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         text-align: center;
         min-width: 300px;
-        max-width: 300px;
+        max-width: 900px;
     }
     .movie-title {
         font-size: 18px;
