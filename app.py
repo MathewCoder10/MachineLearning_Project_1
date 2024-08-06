@@ -3,25 +3,32 @@ import pickle
 import pandas as pd
 import requests
 import logging
-from sklearn.metrics.pairwise import cosine_similarity
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 
-def fetch_poster(movie_id):
+def fetch_poster_and_details(movie_id):
     try:
         response = requests.get(f"https://api.themoviedb.org/3/movie/{movie_id}?api_key=8265bd1679663a7ea12ac168da84d2e8&language=en-US")
         response.raise_for_status()  # Raise an error for bad status codes
         data = response.json()
         poster_path = data.get('poster_path')
+        details = {
+            "title": data.get('title'),
+            "overview": data.get('overview'),
+            "release_date": data.get('release_date'),
+            "rating": data.get('vote_average')
+        }
         if poster_path:
-            return f"https://image.tmdb.org/t/p/w500/{poster_path}"
+            poster_url = f"https://image.tmdb.org/t/p/w500/{poster_path}"
         else:
             logging.warning(f"No poster path found for movie_id: {movie_id}")
-            return "default_poster_url"  # Replace with a valid default URL
+            poster_url = "default_poster_url"  # Replace with a valid default URL
+        
+        return poster_url, details
     except requests.exceptions.RequestException as e:
-        logging.error(f"Error fetching poster for movie_id: {movie_id}, error: {e}")
-        return "default_poster_url"  # Replace with a valid default URL
+        logging.error(f"Error fetching poster and details for movie_id: {movie_id}, error: {e}")
+        return "default_poster_url", {}  # Replace with a valid default URL
 
 def recommend(movie, num_recommendations=15):
     movie_index = movies[movies['title'] == movie].index[0]
@@ -29,85 +36,76 @@ def recommend(movie, num_recommendations=15):
     
     recommended_movies = []
     recommended_movies_posters = []
+    recommended_movies_details = []
     count = 0
     for similar_movie in top_similar_movies:
         similar_movie_index = similar_movie[0]
         movie_id = movies.iloc[similar_movie_index].movie_id
-        recommended_movies.append(movies.iloc[similar_movie_index].title)
-        recommended_movies_posters.append(fetch_poster(movie_id))
+        movie_title = movies.iloc[similar_movie_index].title
+        poster_url, details = fetch_poster_and_details(movie_id)
+        
+        recommended_movies.append(movie_title)
+        recommended_movies_posters.append(poster_url)
+        recommended_movies_details.append(details)
+        
         count += 1
         if count >= num_recommendations:
             break
     
-    return recommended_movies, recommended_movies_posters
+    return recommended_movies, recommended_movies_posters, recommended_movies_details
 
 # Load movies and similarity data
 movies_dict = pickle.load(open('movie_dict.pkl', 'rb'))
 movies = pd.DataFrame(movies_dict)
 top_n_similarity = pickle.load(open('top_n_similarity.pkl', 'rb'))
 
-# User Authentication (Simple Version)
-if 'username' not in st.session_state:
-    st.session_state['username'] = None
+st.title('AI Powered Movie Recommender')
 
-if st.session_state['username'] is None:
-    username = st.text_input("Username")
-    password = st.text_input("Password", type='password')
-    if st.button('Login'):
-        st.session_state['username'] = username
-        st.success(f'Welcome {username}!')
-else:
-    st.title(f'Welcome {st.session_state["username"]}!')
+st.markdown(
+    """
+    <style>
+    .custom-select-text {
+        color: white;
+        font-size: 24px;
+        font-weight: bold;
+        background: linear-gradient(90deg, rgba(0,210,255,1) 0%, rgba(0,150,255,1) 100%);
+        padding: 15px;
+        border-radius: 10px;
+        text-align: center;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
-    st.title('AI Powered Movie Recommender')
+st.markdown('<p class="custom-select-text">Type or select a movie from the dropdown:</p>', unsafe_allow_html=True)
 
-    st.markdown(
-        """
-        <style>
-        .custom-select-text {
-            color: white;
-            font-size: 24px;
-            font-weight: bold;
-            background: linear-gradient(90deg, rgba(0,210,255,1) 0%, rgba(0,150,255,1) 100%);
-            padding: 15px;
-            border-radius: 10px;
-            text-align: center;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
-        </style>
-        """,
-        unsafe_allow_html=True
-    )
+selected_movie_name = st.selectbox(
+    '',
+    movies['title'].values
+)
 
-    st.markdown('<p class="custom-select-text">Type or select a movie from the dropdown:</p>', unsafe_allow_html=True)
+num_recommendations = st.slider('Number of recommendations', 1, 20, 15)
 
-    selected_movie_name = st.selectbox(
-        '',
-        movies['title'].values
-    )
-
-    num_recommendations = st.slider('Number of recommendations', 1, 20, 15)
-
-    if st.button('Search'):
-        names, posters = recommend(selected_movie_name, num_recommendations=num_recommendations)
-        
-        # Display recommendations
-        num_cols = 5
-        num_rows = len(names) // num_cols + 1
-        for i in range(num_rows):
-            row = st.columns(num_cols)
-            for j in range(num_cols):
-                index = i * num_cols + j
-                if index < len(names):
-                    with row[j]:
-                        st.text(names[index])
-                        try:
-                            st.image(posters[index])
-                        except Exception as e:
-                            logging.error(f"Error displaying image for {names[index]}: {e}")
-                            st.text("Image not available")
-
-    # Log out button
-    if st.button('Logout'):
-        st.session_state['username'] = None
-        st.experimental_rerun()
+if st.button('Search'):
+    names, posters, details = recommend(selected_movie_name, num_recommendations=num_recommendations)
+    
+    # Display recommendations
+    num_cols = 5
+    num_rows = len(names) // num_cols + 1
+    for i in range(num_rows):
+        row = st.columns(num_cols)
+        for j in range(num_cols):
+            index = i * num_cols + j
+            if index < len(names):
+                with row[j]:
+                    st.text(names[index])
+                    try:
+                        st.image(posters[index])
+                        st.markdown(f"**Release Date:** {details[index].get('release_date', 'N/A')}")
+                        st.markdown(f"**Rating:** {details[index].get('rating', 'N/A')}")
+                        st.markdown(f"**Overview:** {details[index].get('overview', 'N/A')}")
+                    except Exception as e:
+                        logging.error(f"Error displaying image or details for {names[index]}: {e}")
+                        st.text("Details not available")
