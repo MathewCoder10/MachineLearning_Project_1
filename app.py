@@ -47,13 +47,9 @@ top_n_similarity = pickle.load(open('top_n_similarity.pkl', 'rb'))
 
 st.title('AI Powered Movie Recommender')
 
-# Add background style
 st.markdown(
     """
     <style>
-    body {
-        background: linear-gradient(135deg, #ff5e62, #ff9966);
-    }
     .custom-select-text {
         color: white;
         font-size: 24px;
@@ -63,15 +59,6 @@ st.markdown(
         border-radius: 10px;
         text-align: center;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    }
-    .stButton>button {
-        background-color: #ff5e62;
-        color: white;
-        border-radius: 10px;
-        padding: 10px 20px;
-    }
-    .stButton>button:hover {
-        background-color: #ff9966;
     }
     </style>
     """,
