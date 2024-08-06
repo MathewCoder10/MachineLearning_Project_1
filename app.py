@@ -80,9 +80,18 @@ st.markdown(
         margin: 10px;
         border-radius: 10px;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        text-align: center;
-        min-width: 300px;
+        text-align: left;
+        display: flex;
+        flex-direction: row;
         max-width: 900px;
+    }
+    .poster {
+        max-width: 200px;
+        margin-right: 15px;
+        border-radius: 10px;
+    }
+    .movie-info {
+        flex: 1;
     }
     .movie-title {
         font-size: 18px;
@@ -118,12 +127,14 @@ if st.button('Search'):
     for i in range(len(names)):
         st.markdown(f"""
         <div class="recommendation-card">
-            <img src="{posters[i]}" alt="{names[i]}" style="width:100%; height:auto; border-radius:10px;">
-            <div class="movie-title">{names[i]}</div>
-            <div class="movie-details">
-                <p>Release Date: {details[i].get('release_date', 'N/A')}</p>
-                <p>Rating: {details[i].get('rating', 'N/A')}</p>
-                <p>{details[i].get('overview', 'N/A')}</p>
+            <img src="{posters[i]}" alt="{names[i]}" class="poster">
+            <div class="movie-info">
+                <div class="movie-title">{names[i]}</div>
+                <div class="movie-details">
+                    <p>Release Date: {details[i].get('release_date', 'N/A')}</p>
+                    <p>Rating: {details[i].get('rating', 'N/A')}</p>
+                    <p>{details[i].get('overview', 'N/A')}</p>
+                </div>
             </div>
         </div>
         """, unsafe_allow_html=True)
