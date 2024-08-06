@@ -3,6 +3,7 @@ import pickle
 import pandas as pd
 import requests
 import logging
+from sklearn.metrics.pairwise import cosine_similarity
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -45,48 +46,68 @@ movies_dict = pickle.load(open('movie_dict.pkl', 'rb'))
 movies = pd.DataFrame(movies_dict)
 top_n_similarity = pickle.load(open('top_n_similarity.pkl', 'rb'))
 
-st.title('AI Powered Movie Recommender')
+# User Authentication (Simple Version)
+if 'username' not in st.session_state:
+    st.session_state['username'] = None
 
-st.markdown(
-    """
-    <style>
-    .custom-select-text {
-        color: white;
-        font-size: 24px;
-        font-weight: bold;
-        background: linear-gradient(90deg, rgba(0,210,255,1) 0%, rgba(0,150,255,1) 100%);
-        padding: 15px;
-        border-radius: 10px;
-        text-align: center;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
+if st.session_state['username'] is None:
+    username = st.text_input("Username")
+    password = st.text_input("Password", type='password')
+    if st.button('Login'):
+        st.session_state['username'] = username
+        st.success(f'Welcome {username}!')
+else:
+    st.title(f'Welcome {st.session_state["username"]}!')
 
-st.markdown('<p class="custom-select-text">Type or select a movie from the dropdown:</p>', unsafe_allow_html=True)
+    st.title('AI Powered Movie Recommender')
 
-selected_movie_name = st.selectbox(
-    '',
-    movies['title'].values
-)
+    st.markdown(
+        """
+        <style>
+        .custom-select-text {
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            background: linear-gradient(90deg, rgba(0,210,255,1) 0%, rgba(0,150,255,1) 100%);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
 
-if st.button('Search'):
-    names, posters = recommend(selected_movie_name, num_recommendations=15)
-    
-    # Display recommendations
-    num_cols = 5
-    num_rows = len(names) // num_cols + 1
-    for i in range(num_rows):
-        row = st.columns(num_cols)
-        for j in range(num_cols):
-            index = i * num_cols + j
-            if index < len(names):
-                with row[j]:
-                    st.text(names[index])
-                    try:
-                        st.image(posters[index])
-                    except Exception as e:
-                        logging.error(f"Error displaying image for {names[index]}: {e}")
-                        st.text("Image not available")
+    st.markdown('<p class="custom-select-text">Type or select a movie from the dropdown:</p>', unsafe_allow_html=True)
+
+    selected_movie_name = st.selectbox(
+        '',
+        movies['title'].values
+    )
+
+    num_recommendations = st.slider('Number of recommendations', 1, 20, 15)
+
+    if st.button('Search'):
+        names, posters = recommend(selected_movie_name, num_recommendations=num_recommendations)
+        
+        # Display recommendations
+        num_cols = 5
+        num_rows = len(names) // num_cols + 1
+        for i in range(num_rows):
+            row = st.columns(num_cols)
+            for j in range(num_cols):
+                index = i * num_cols + j
+                if index < len(names):
+                    with row[j]:
+                        st.text(names[index])
+                        try:
+                            st.image(posters[index])
+                        except Exception as e:
+                            logging.error(f"Error displaying image for {names[index]}: {e}")
+                            st.text("Image not available")
+
+    # Log out button
+    if st.button('Logout'):
+        st.session_state['username'] = None
+        st.experimental_rerun()
