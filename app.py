@@ -72,7 +72,7 @@ selected_movie_name = st.selectbox(
     movies['title'].values
 )
 
-if st.button('Recommend'):
+if st.button('Search'):
     names, posters = recommend(selected_movie_name, num_recommendations=15)
     
     # Display recommendations
