@@ -30,7 +30,7 @@ def fetch_poster_and_details(movie_id):
         logging.error(f"Error fetching poster and details for movie_id: {movie_id}, error: {e}")
         return "default_poster_url", {}  # Replace with a valid default URL
 
-def recommend(movie, num_recommendations=15):
+def recommend(movie, num_recommendations=5):
     movie_index = movies[movies['title'] == movie].index[0]
     top_similar_movies = top_n_similarity[movie_index]
     
@@ -74,6 +74,22 @@ st.markdown(
         text-align: center;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     }
+    .recommendation-card {
+        background-color: #f0f2f6;
+        padding: 10px;
+        margin: 10px;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        text-align: center;
+    }
+    .movie-title {
+        font-size: 18px;
+        font-weight: bold;
+    }
+    .movie-details {
+        font-size: 14px;
+        color: #555;
+    }
     </style>
     """,
     unsafe_allow_html=True
@@ -86,7 +102,7 @@ selected_movie_name = st.selectbox(
     movies['title'].values
 )
 
-num_recommendations = st.slider('Number of recommendations', 1, 20, 15)
+num_recommendations = st.slider('Number of recommendations', 1, 10, 5)
 
 if st.button('Search'):
     names, posters, details = recommend(selected_movie_name, num_recommendations=num_recommendations)
@@ -100,12 +116,14 @@ if st.button('Search'):
             index = i * num_cols + j
             if index < len(names):
                 with row[j]:
-                    st.text(names[index])
-                    try:
-                        st.image(posters[index])
-                        st.markdown(f"**Release Date:** {details[index].get('release_date', 'N/A')}")
-                        st.markdown(f"**Rating:** {details[index].get('rating', 'N/A')}")
-                        st.markdown(f"**Overview:** {details[index].get('overview', 'N/A')}")
-                    except Exception as e:
-                        logging.error(f"Error displaying image or details for {names[index]}: {e}")
-                        st.text("Details not available")
+                    st.markdown(f"""
+                    <div class="recommendation-card">
+                        <img src="{posters[index]}" alt="{names[index]}" style="width:100%; height:auto; border-radius:10px;">
+                        <div class="movie-title">{names[index]}</div>
+                        <div class="movie-details">
+                            <p>Release Date: {details[index].get('release_date', 'N/A')}</p>
+                            <p>Rating: {details[index].get('rating', 'N/A')}</p>
+                            <p>{details[index].get('overview', 'N/A')}</p>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
