@@ -53,13 +53,12 @@ st.markdown(
     <style>
     body {
         background: linear-gradient(135deg, #ff5e62, #ff9966);
-        color: white;
     }
     .custom-select-text {
         color: white;
         font-size: 24px;
         font-weight: bold;
-        background: rgba(0,0,0,0.7);
+        background: linear-gradient(90deg, rgba(0,210,255,1) 0%, rgba(0,150,255,1) 100%);
         padding: 15px;
         border-radius: 10px;
         text-align: center;
@@ -73,10 +72,6 @@ st.markdown(
     }
     .stButton>button:hover {
         background-color: #ff9966;
-    }
-    .stSelectbox select {
-        background-color: rgba(255, 255, 255, 0.9);
-        color: black;
     }
     </style>
     """,
