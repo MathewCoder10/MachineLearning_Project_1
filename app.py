@@ -81,7 +81,7 @@ st.markdown(
         border-radius: 10px;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         text-align: center;
-        min-width: 3000px;  /* Reduced minimum width */
+        min-width: 300px;  /* Reduced minimum width */
         max-width: 900px;  /* Reduced maximum width */
     }
     .movie-title {
