@@ -99,52 +99,67 @@ top_n_similarity = pickle.load(open('top_n_similarity.pkl', 'rb'))
 if 'poster_path' not in movies.columns:
     logging.error("'poster_path' column not found in the movies DataFrame")
 
-st.title('AI Powered Movie Recommender')
+# Initialize session state
+if 'view' not in st.session_state:
+    st.session_state.view = 'main'
+if 'selected_movie_id' not in st.session_state:
+    st.session_state.selected_movie_id = None
 
-st.markdown(
-    """
-    <style>
-    .custom-select-text {
-        color: white;
-        font-size: 24px;
-        font-weight: bold;
-        background: linear-gradient(90deg, rgba(0,210,255,1) 0%, rgba(0,150,255,1) 100%);
-        padding: 15px;
-        border-radius: 10px;
-        text-align: center;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
+def show_main_view():
+    st.title('AI Powered Movie Recommender')
 
-st.markdown('<p class="custom-select-text">Type or select a movie from the dropdown:</p>', unsafe_allow_html=True)
+    st.markdown(
+        """
+        <style>
+        .custom-select-text {
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            background: linear-gradient(90deg, rgba(0,210,255,1) 0%, rgba(0,150,255,1) 100%);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
 
-selected_movie_name = st.selectbox(
-    '',
-    movies['title'].values
-)
+    st.markdown('<p class="custom-select-text">Type or select a movie from the dropdown:</p>', unsafe_allow_html=True)
 
-if st.button('Recommend'):
-    names, posters, movie_ids = recommend(selected_movie_name, num_recommendations=15)
-    
-    # Display recommendations
-    num_cols = 5
-    num_rows = len(names) // num_cols + 1
-    for i in range(num_rows):
-        row = st.columns(num_cols)
-        for j in range(num_cols):
-            index = i * num_cols + j
-            if index < len(names):
-                with row[j]:
-                    st.text(names[index])
-                    try:
-                        if st.button(f"Show details {index}", key=index):
-                            display_movie_details(movie_ids[index])
-                    except Exception as e:
-                        logging.error(f"Error displaying details for {names[index]}: {e}")
-                        st.text("Details not available")
+    selected_movie_name = st.selectbox(
+        '',
+        movies['title'].values
+    )
 
-if st.button('Go Back'):
-    st.experimental_rerun()
+    if st.button('Recommend'):
+        names, posters, movie_ids = recommend(selected_movie_name, num_recommendations=15)
+        
+        # Display recommendations
+        num_cols = 5
+        num_rows = len(names) // num_cols + 1
+        for i in range(num_rows):
+            row = st.columns(num_cols)
+            for j in range(num_cols):
+                index = i * num_cols + j
+                if index < len(names):
+                    with row[j]:
+                        st.text(names[index])
+                        st.image(posters[index])
+                        if st.button(f"Show details {index}", key=f"details_{index}"):
+                            st.session_state.view = 'details'
+                            st.session_state.selected_movie_id = movie_ids[index]
+                            st.experimental_rerun()
+
+def show_details_view():
+    display_movie_details(st.session_state.selected_movie_id)
+    if st.button('Go Back'):
+        st.session_state.view = 'main'
+        st.experimental_rerun()
+
+# Display the appropriate view
+if st.session_state.view == 'main':
+    show_main_view()
+elif st.session_state.view == 'details':
+    show_details_view()
