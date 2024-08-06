@@ -81,12 +81,13 @@ st.markdown(
         border-radius: 10px;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         text-align: center;
-        min-width: 300px;
-        max-width: 900px;
+        min-width: 250px;  /* Reduced minimum width */
+        max-width: 500px;  /* Reduced maximum width */
     }
     .movie-title {
         font-size: 18px;
         font-weight: bold;
+        color: #FF5733;  /* Updated color */
     }
     .movie-details {
         font-size: 14px;
@@ -96,10 +97,16 @@ st.markdown(
         display: flex;
         overflow-x: auto;
     }
+    .recommendation-card img {
+        max-width: 150px;  /* Adjust the maximum width */
+        height: auto;
+        border-radius: 10px;
+    }
     </style>
     """,
     unsafe_allow_html=True
 )
+
 
 st.markdown('<p class="custom-select-text">Type or select a movie from the dropdown:</p>', unsafe_allow_html=True)
 
