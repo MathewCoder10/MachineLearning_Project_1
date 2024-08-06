@@ -81,6 +81,8 @@ st.markdown(
         border-radius: 10px;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         text-align: center;
+        min-width: 200px;
+        max-width: 200px;
     }
     .movie-title {
         font-size: 18px;
@@ -89,6 +91,10 @@ st.markdown(
     .movie-details {
         font-size: 14px;
         color: #555;
+    }
+    .horizontal-scroll {
+        display: flex;
+        overflow-x: auto;
     }
     </style>
     """,
@@ -107,23 +113,18 @@ num_recommendations = st.slider('Number of recommendations', 1, 10, 5)
 if st.button('Search'):
     names, posters, details = recommend(selected_movie_name, num_recommendations=num_recommendations)
     
-    # Display recommendations
-    num_cols = 5
-    num_rows = len(names) // num_cols + 1
-    for i in range(num_rows):
-        row = st.columns(num_cols)
-        for j in range(num_cols):
-            index = i * num_cols + j
-            if index < len(names):
-                with row[j]:
-                    st.markdown(f"""
-                    <div class="recommendation-card">
-                        <img src="{posters[index]}" alt="{names[index]}" style="width:100%; height:auto; border-radius:10px;">
-                        <div class="movie-title">{names[index]}</div>
-                        <div class="movie-details">
-                            <p>Release Date: {details[index].get('release_date', 'N/A')}</p>
-                            <p>Rating: {details[index].get('rating', 'N/A')}</p>
-                            <p>{details[index].get('overview', 'N/A')}</p>
-                        </div>
-                    </div>
-                    """, unsafe_allow_html=True)
+    # Display recommendations in a horizontal scroll container
+    st.markdown('<div class="horizontal-scroll">', unsafe_allow_html=True)
+    for i in range(len(names)):
+        st.markdown(f"""
+        <div class="recommendation-card">
+            <img src="{posters[i]}" alt="{names[i]}" style="width:100%; height:auto; border-radius:10px;">
+            <div class="movie-title">{names[i]}</div>
+            <div class="movie-details">
+                <p>Release Date: {details[i].get('release_date', 'N/A')}</p>
+                <p>Rating: {details[i].get('rating', 'N/A')}</p>
+                <p>{details[i].get('overview', 'N/A')}</p>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
